@@ -10,9 +10,9 @@ import tempfile
 from launcher_protocol_tests import Adapter, check, launcher, successful
 
 
-def recognize(adapter, script, environment):
+def recognize(adapter, script, environment, saved_environment=""):
     return successful(adapter.invoke("launcher-discovery", 1, "recognize", {
-        "launcher": launcher(script),
+        "launcher": launcher(script, environment=saved_environment),
         "platform": "windows-x86_64",
         "ambient_environment": environment,
     }))["recognized"]
@@ -89,6 +89,18 @@ def main():
         shadowed = dict(environment, PATH=str(directory) + os.pathsep + environment["PATH"])
         shadow_script = " ".join(word(arg) for arg in ["wsl.exe", *selected_argv[1:]])
         check(not recognize(adapter, shadow_script, shadowed), "reject a same-named WSL executable earlier on the selected PATH")
+        check(not recognize(adapter, shadow_script, environment, f"OTHER=1\r\npAtH={directory}"),
+              "the saved launcher PATH can select a different executable than ambient PATH")
+        system_directory = str(Path(subprocess_args[0]).parent)
+        check(recognize(adapter, shadow_script, shadowed, f"Path={system_directory}"),
+              "a saved literal PATH can select the real WSL executable")
+        check(recognize(adapter, shadow_script, shadowed, r"Path=%SystemRoot%\System32;%Path%"),
+              "saved PATH expansion uses the captured ambient variables")
+        check(not recognize(adapter, shadow_script, environment, f"Path=relative;{system_directory}"),
+              "a relative PATH entry may shadow a later system executable in the launch directory")
+        check(not recognize(adapter, shadow_script, environment, "Path=%UNDECLARED%"), "unresolved saved PATH")
+        check(recognize(adapter, selected_script, shadowed, "Path=%UNDECLARED%"),
+              "an absolute saved WSL program is independent of PATH overrides")
         check_passthrough(adapter, selected_script, selected_argv, environment, directory)
         native = subprocess.run(selected_argv, check=True, capture_output=True, text=True, timeout=20, env=environment)
         check("Usage: rig up" in native.stdout, "stock subcommand receives original arguments")

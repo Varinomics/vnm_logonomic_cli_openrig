@@ -19,6 +19,7 @@
 #include <chrono>
 #include <filesystem>
 #include <optional>
+#include <sstream>
 #include <string_view>
 
 namespace openrig {
@@ -96,6 +97,64 @@ std::string direct_word(std::string_view word)
     return value + '"';
 }
 
+std::optional<std::string> expand_search_value(std::string_view value, const addon::Environment& ambient)
+{
+    std::string expanded;
+    for (;;) {
+        const auto open = value.find('%');
+        const auto close = open == value.npos ? value.npos : value.find('%', open + 1);
+        if (close == value.npos) return expanded + std::string(value);
+        expanded.append(value.substr(0, open));
+        const auto name = addon::lower(std::string(value.substr(open + 1, close - open - 1)));
+        if (name.empty()) {
+            expanded += "%%";
+        } else {
+            const auto found = std::find_if(ambient.begin(), ambient.end(), [&](const auto& entry) {
+                return addon::lower(entry.first) == name;
+            });
+            if (found == ambient.end()) return std::nullopt;
+            expanded += found->second;
+        }
+        value.remove_prefix(close + 1);
+    }
+}
+
+bool selects_system_wsl(const std::string& program, const addon::Recognize_request& request)
+{
+    const auto system = system_wsl();
+    if (!system) return false;
+    const auto ambient = addon::environment_pairs(request.ambient_environment);
+    auto environment = ambient;
+    if (!addon::path_from_utf8(program).is_absolute()) {
+        // Recognition receives the ambient map and the saved KEY=value lines
+        // separately. Expand against the captured ambient values, as the
+        // launcher does, and decline references to undisclosed variables.
+        std::istringstream lines(request.launcher.environment_text);
+        bool path_seen = false, extensions_seen = false;
+        for (std::string raw; std::getline(lines, raw);) {
+            const auto line = addon::trim(raw);
+            const auto separator = line.find('=');
+            if (separator == std::string::npos) continue;
+            const auto name = addon::lower(addon::trim(line.substr(0, separator)));
+            if (name != "path" && name != "pathext") continue;
+            bool& seen = name == "path" ? path_seen : extensions_seen;
+            const auto value = expand_search_value(std::string_view(line).substr(separator + 1), ambient);
+            if (seen || !value) return false;
+            seen = true;
+            addon::set_environment(environment, name, *value);
+        }
+        // Recognition has no launch cwd with which to resolve a relative
+        // PATH entry. It cannot skip that entry and claim a later system WSL.
+        std::istringstream directories(addon::environment_value(environment, "PATH"));
+        for (std::string directory; std::getline(directories, directory, ';');) {
+            if (!directory.empty() && !addon::path_from_utf8(addon::unquote(directory)).is_absolute()) return false;
+        }
+    }
+    const auto selected = addon::resolve_program(program, environment, "");
+    std::error_code error;
+    return selected && fs::equivalent(*system, *selected, error) && !error;
+}
+
 } // namespace
 
 std::vector<addon::Launcher_candidate> discover_wsl(const addon::Discover_request& request, addon::Invocation_context& context)
@@ -157,10 +216,7 @@ bool recognize_wsl(const addon::Recognize_request& request)
     const auto invocation = addon::literal_launcher_invocation(request.launcher, request.platform_id);
     if (!invocation || invocation->argv.size() < 5 || !invocation->environment_names.empty()) return false;
     const auto& words = invocation->argv;
-    const auto system = system_wsl();
-    const auto selected = addon::resolve_program(words.front(), addon::environment_pairs(request.ambient_environment), "");
-    std::error_code error;
-    if (!system || !selected || !fs::equivalent(*system, *selected, error) || error) return false;
+    if (!selects_system_wsl(words.front(), request)) return false;
 
     std::string distribution;
     bool has_user = false, has_directory = false;
