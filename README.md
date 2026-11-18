@@ -122,10 +122,36 @@ entry point. The maintained
 and [Codex preparation](https://github.com/Varinomics/vnm_logonomic_cli_codex/blob/master/src/codex_preparation.cpp)
 own native hook behavior; OpenRig must compose those hooks with its own.
 
+Local Claude integration also requires a supported upstream grant-and-claim
+operation for each native launch, restricted to the enrolled member and launch
+admission. It must authenticate the actual launching process while a launch or
+successor is still pending. OpenRig's
+[launch identity metadata](https://github.com/mvschwarz/openrig/blob/da697972c54a46c702b15bc5d0835efbc5725e18/packages/daemon/src/domain/seat-launch-environment.ts)
+is public, and its daemon-wide activity token cannot authorize Logonomic
+enrollment. A
+[successor starts before its session and binding commit](https://github.com/mvschwarz/openrig/blob/da697972c54a46c702b15bc5d0835efbc5725e18/packages/daemon/src/domain/successor-session-launcher.ts),
+so committed inventory cannot authenticate that pending launch. Each accepted
+launch needs fresh host authority and activation even when its OpenRig occupant
+generation continues. The inspected
+[run-bound activity-grant issuer](https://github.com/mvschwarz/openrig/blob/da697972c54a46c702b15bc5d0835efbc5725e18/packages/daemon/src/domain/runner-grant-launch.ts)
+does not supply this local-Claude enrollment contract. Hook support remains
+unavailable without it.
+
+A stable bootstrap must survive owner exit and package-custody cleanup, and
+allow the original native child to launch without hooks when no authorized
+owner is available. Saved specs, global tmux environment and durable wrapper
+arguments must contain no host session secrets. Native preparation must run at
+the innermost wrapper, after existing wrappers have transformed the actual child's
+arguments and environment, then execute the prepared child with `exec`. The
+authored-spec helper above only prepends a caller-owned prefix; it does not
+establish that placement or activate native hooks.
+
 Existing seats also need a supported targeted wrapper update for the next
 user-directed native launch, preserving the rig, seat and history. OpenRig's
-[launch-wrapper contract](https://github.com/mvschwarz/openrig/blob/main/docs/reference/rig-spec.md#launch-wrapper-runtime-pi-and-codex)
+[launch-wrapper contract](https://github.com/mvschwarz/openrig/blob/da697972c54a46c702b15bc5d0835efbc5725e18/docs/reference/rig-spec.md)
 does not supply a live edit operation. Opening an unscoped dashboard or replacing
 an entire rig cannot satisfy enrollment. Windows support additionally requires
 a scoped authenticated transport from WSL2 to the Windows host.
 
+The linked OpenRig revision records the inspected source. Compatibility depends
+on the required capabilities, not an exact revision.
