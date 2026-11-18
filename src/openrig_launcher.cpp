@@ -1,4 +1,7 @@
 #include "openrig_launcher.h"
+#ifdef _WIN32
+#include "openrig_wsl.h"
+#endif
 
 #include <logonomic_cli_addon/launch_preparation.h>
 #include <logonomic_cli_addon/launcher_discovery.h>
@@ -18,6 +21,13 @@ bool supported_platform(std::string_view platform)
 {
     return platform == "linux-x86_64" || platform == "macos-arm64";
 }
+
+void reject(addon::Invocation_context& context, const addon::Contract_failure& failure)
+{
+    context.fail(addon::Result_status::FAILED, failure.reason_code, failure.detail);
+}
+
+} // namespace
 
 bool openrig_help(std::string_view help)
 {
@@ -41,13 +51,6 @@ bool openrig_help(std::string_view help)
     return rig_usage && identity;
 }
 
-void reject(addon::Invocation_context& context, const addon::Contract_failure& failure)
-{
-    context.fail(addon::Result_status::FAILED, failure.reason_code, failure.detail);
-}
-
-} // namespace
-
 void discover(addon::Invocation_context& context)
 {
     addon::Contract_failure failure;
@@ -58,6 +61,11 @@ void discover(addon::Invocation_context& context)
     }
 
     std::vector<addon::Launcher_candidate> candidates;
+#ifdef _WIN32
+    if (request->platform_id == "windows-x86_64") {
+        candidates = discover_wsl(*request, context);
+    } else
+#endif
     if (supported_platform(request->platform_id)) {
         const auto environment = addon::environment_pairs(request->ambient_environment);
         const auto program = addon::resolve_program("rig", environment, request->default_home_fallback);
@@ -91,6 +99,11 @@ void recognize(addon::Invocation_context& context)
     }
 
     addon::Launcher_recognition recognition;
+#ifdef _WIN32
+    if (request->platform_id == "windows-x86_64") {
+        recognition.recognized = recognize_wsl(*request);
+    } else
+#endif
     if (supported_platform(request->platform_id)) {
         const auto invocation = addon::literal_launcher_invocation(request->launcher, request->platform_id);
         recognition.recognized = invocation && !invocation->argv.empty() &&

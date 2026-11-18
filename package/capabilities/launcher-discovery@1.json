@@ -1,5 +1,5 @@
 {
   "capability_id": "launcher-discovery",
   "version": 1,
-  "payload": {"environment_names": []}
+  "payload": {"environment_names": ["SystemRoot"]}
 }

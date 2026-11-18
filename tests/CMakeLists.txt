@@ -4,6 +4,13 @@ add_test(NAME openrig_package_conformance COMMAND logonomic_cli_addon_conformanc
     "${OPENRIG_PACKAGE_DIRECTORY}")
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+if(WIN32)
+    add_test(NAME openrig_wsl_protocol COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/wsl_protocol_tests.py" "$<TARGET_FILE:openrig_adapter>")
+    set_tests_properties(openrig_package_validation openrig_package_conformance openrig_wsl_protocol
+        PROPERTIES TIMEOUT 120 LABELS "cli-addon;provider-contract")
+    return()
+endif()
 add_test(NAME openrig_launcher_protocol COMMAND "${Python3_EXECUTABLE}" -B
     "${CMAKE_CURRENT_SOURCE_DIR}/launcher_protocol_tests.py"
     "$<TARGET_FILE:openrig_adapter>" "${OPENRIG_PLATFORM}")

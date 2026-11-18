@@ -4,12 +4,12 @@ import copy
 import json
 import os
 from pathlib import Path
-import selectors
+import queue
 import shlex
 import subprocess
 import sys
 import tempfile
-import time
+import threading
 
 
 def check(condition, message):
@@ -24,9 +24,9 @@ class Adapter:
         self.process = subprocess.Popen(
             [executable], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=self.errors, env=environment)
-        self.selector = selectors.DefaultSelector()
-        self.selector.register(self.process.stdout, selectors.EVENT_READ)
-        self.buffer = b""
+        self.frames = queue.Queue()
+        self.reader = threading.Thread(target=self.read_frames, daemon=True)
+        self.reader.start()
         self.request_number = 0
         try:
             self.send({
@@ -74,9 +74,9 @@ class Adapter:
         if self.process.poll() is None:
             self.process.kill()
         self.process.wait(timeout=5)
+        self.reader.join(timeout=5)
         self.process.stdin.close()
         self.process.stdout.close()
-        self.selector.close()
         self.errors.close()
 
     def send(self, value):
@@ -84,17 +84,21 @@ class Adapter:
         self.process.stdin.write(frame + b"\n")
         self.process.stdin.flush()
 
+    def read_frames(self):
+        while True:
+            frame = self.process.stdout.readline(4194305)
+            self.frames.put(frame)
+            if not frame or not frame.endswith(b"\n"):
+                return
+
     def receive(self):
-        deadline = time.monotonic() + 10
-        while b"\n" not in self.buffer:
-            remaining = deadline - time.monotonic()
-            check(remaining > 0 and self.selector.select(remaining), "adapter response timeout")
-            chunk = os.read(self.process.stdout.fileno(), 65536)
-            check(bool(chunk), "unexpected adapter EOF")
-            self.buffer += chunk
-            check(len(self.buffer) <= 4194304, "wire frame exceeds the negotiated bound")
-        frame, self.buffer = self.buffer.split(b"\n", 1)
-        check(not frame.endswith(b"\r"), "wire delimiter must be LF")
+        try:
+            frame = self.frames.get(timeout=10)
+        except queue.Empty:
+            raise RuntimeError("adapter response timeout") from None
+        check(bool(frame), "unexpected adapter EOF")
+        check(len(frame) <= 4194304, "wire frame exceeds the negotiated bound")
+        check(frame.endswith(b"\n") and not frame.endswith(b"\r\n"), "wire delimiter must be LF")
         return json.loads(frame.decode("utf-8"))
 
     def invoke(self, capability, version, operation, payload):

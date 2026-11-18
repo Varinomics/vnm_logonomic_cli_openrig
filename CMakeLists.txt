@@ -13,8 +13,8 @@ endif()
 
 project(logonomic_cli_openrig VERSION 0.1.0 LANGUAGES CXX)
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    message(FATAL_ERROR "The OpenRig add-on package targets Linux x86_64 and macOS arm64.")
+if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    message(FATAL_ERROR "The OpenRig add-on package targets Windows x86_64, Linux x86_64 and macOS arm64.")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -42,7 +42,11 @@ endif()
 
 function(openrig_target target)
     target_link_libraries(${target} PRIVATE logonomic_cli_addon_sdk::sdk)
-    target_compile_options(${target} PRIVATE -Wall -Wextra -Werror)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4 /WX /utf-8)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Werror)
+    endif()
 endfunction()
 
 add_library(openrig_provider STATIC src/openrig_launcher.cpp)
@@ -50,24 +54,30 @@ target_include_directories(openrig_provider PUBLIC src)
 target_link_libraries(openrig_provider PUBLIC logonomic_cli_addon_sdk::sdk)
 openrig_target(openrig_provider)
 
-add_library(openrig_member STATIC src/openrig_member.cpp)
-target_include_directories(openrig_member PUBLIC src)
-target_link_libraries(openrig_member PUBLIC logonomic_cli_addon_sdk::sdk)
-openrig_target(openrig_member)
-
 add_executable(openrig_adapter src/adapter.cpp)
 target_link_libraries(openrig_adapter PRIVATE openrig_provider)
 openrig_target(openrig_adapter)
 
-add_executable(openrig_prepare_member src/openrig_prepare_member.cpp)
-target_link_libraries(openrig_prepare_member PRIVATE openrig_member)
-openrig_target(openrig_prepare_member)
+if(WIN32)
+    target_sources(openrig_provider PRIVATE src/openrig_wsl.cpp)
+    target_link_libraries(openrig_provider PRIVATE ole32)
+else()
+    add_library(openrig_member STATIC src/openrig_member.cpp)
+    target_include_directories(openrig_member PUBLIC src)
+    target_link_libraries(openrig_member PUBLIC logonomic_cli_addon_sdk::sdk)
+    openrig_target(openrig_member)
+
+    add_executable(openrig_prepare_member src/openrig_prepare_member.cpp)
+    target_link_libraries(openrig_prepare_member PRIVATE openrig_member)
+    openrig_target(openrig_prepare_member)
+    set(OPENRIG_HELPERS HELPERS openrig_prepare_member)
+endif()
 
 logonomic_cli_addon_package_platform(OPENRIG_PLATFORM)
 set(OPENRIG_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 configure_file(package/logonomic-cli-addon.json.in generated/logonomic-cli-addon.json @ONLY)
 logonomic_cli_addon_add_package(openrig_package logonomic.cli.openrig OPENRIG_PACKAGE_DIRECTORY
-    ADAPTER openrig_adapter HELPERS openrig_prepare_member)
+    ADAPTER openrig_adapter ${OPENRIG_HELPERS})
 
 if(LOGONOMIC_CLI_ADDON_EMBEDDED)
     return()

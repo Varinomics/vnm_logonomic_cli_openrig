@@ -12,20 +12,34 @@ it is not a model conversation to which Logonomic can assign shared authority.
 
 | Capability | Support |
 | --- | --- |
-| Package targets | Linux x86_64 and macOS arm64. |
+| Package targets | Windows x86_64, Linux x86_64 and macOS arm64. |
 | Launcher discovery | Finds `rig` on the supplied PATH and checks its OpenRig identity through root help. |
 | Saved launcher recognition | Recognizes a literal `rig` invocation, including arguments and supported literal shell quoting. |
 | Launch preparation | Explicitly unmanaged: preserves the original shell, arguments, environment, profile, directory and approval policy. |
 | Initial model prompt | Unavailable; an explicit request is rejected without acknowledging delivery. |
 | Native hooks, lifecycle and model instructions | Unavailable; no hook, coordination or model-context capability is declared. |
 | Authored-member hook installation and existing-seat enrollment | Unavailable through the saved launcher. |
-| Authored-spec preparation | An explicit command composes a caller-supplied wrapper for one selected member into a new JSON spec. It does not install the wrapper or enroll a seat. |
+| Authored-spec preparation on Linux and macOS | An explicit command composes a caller-supplied wrapper for one selected member into a new JSON spec. It does not install the wrapper or enroll a seat. |
 | Internal native identity reader | Reads public native launch identity for future authenticated binding; not connected to launch preparation. |
-| Windows/WSL bridge | Unavailable; no Windows package is produced. |
+| Windows and WSL2 | Discovers a guest `rig` executable in running WSL2 distributions and preserves explicit saved WSL launches as ordinary terminals. Guest seat observation requires a separate authenticated transport. |
 
 Discovery checks the executable's identity. Recognition describes the authored
 command's syntax; it does not claim a native runtime or enrolled seat. Neither
 operation starts a dashboard, launches a model, restarts a seat or edits a rig.
+
+On Windows, install OpenRig and its prerequisites in the Linux distribution
+where you use it. Discovery verifies the guest executable's root help and saves
+the system `wsl.exe` with the distribution and absolute guest path. A saved
+Direct launcher can also select a registered WSL2 distribution explicitly:
+
+```text
+wsl.exe --distribution Ubuntu-24.04 --exec /usr/local/bin/rig
+```
+
+Use your distribution name and its actual executable path. Optional
+`--user` and `--cd` select the guest user and working directory before
+`--exec`. Arguments after the executable go to OpenRig. Discovery leaves
+stopped distributions idle; a saved launcher can start its selected distribution.
 
 The package sidecars and protocol handshake declare the implemented capability
 set. The package is not included in the official bundle roster.
@@ -76,7 +90,7 @@ installation follow the SDK's
 
 ## Prepare an authored member
 
-The package includes `helpers/openrig_prepare_member` for an explicitly selected
+The Linux and macOS packages include `helpers/openrig_prepare_member` for an explicitly selected
 member in a JSON-authored spec. JSON is accepted by OpenRig's YAML spec reader.
 The command creates a new file beside the source, preserving the directory used
 by relative paths. It leaves the source bytes unchanged and refuses to replace
@@ -150,7 +164,7 @@ Existing seats also need a supported targeted wrapper update for the next
 user-directed native launch, preserving the rig, seat and history. OpenRig's
 [launch-wrapper contract](https://github.com/mvschwarz/openrig/blob/da697972c54a46c702b15bc5d0835efbc5725e18/docs/reference/rig-spec.md)
 does not supply a live edit operation. Opening an unscoped dashboard or replacing
-an entire rig cannot satisfy enrollment. Windows support additionally requires
+an entire rig cannot satisfy enrollment. Windows seat observation additionally requires
 a scoped authenticated transport from WSL2 to the Windows host.
 
 The linked OpenRig revision records the inspected source. Compatibility depends
