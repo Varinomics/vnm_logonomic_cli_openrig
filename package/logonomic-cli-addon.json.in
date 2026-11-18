@@ -1,0 +1,13 @@
+{
+  "bootstrap_version": 1,
+  "package_id": "logonomic.cli.openrig",
+  "release_version": "@PROJECT_VERSION@",
+  "platforms": ["@OPENRIG_PLATFORM@"],
+  "adapter": {
+    "path": {"@OPENRIG_PLATFORM@": "adapter/openrig_adapter@OPENRIG_EXECUTABLE_SUFFIX@"},
+    "argv": [],
+    "environment": {}
+  },
+  "core_protocol_generations": [1],
+  "integrity_index": "package.files.json"
+}

@@ -1,0 +1,15 @@
+{
+  "integration": "OpenRig",
+  "distribution": "@openrig/cli",
+  "command": "rig",
+  "source": "https://github.com/mvschwarz/openrig",
+  "identity": {
+    "probe_argv": ["rig", "--help"],
+    "source_paths": [
+      "packages/cli/src/bin-wrapper.ts",
+      "packages/cli/src/program-root.ts",
+      "packages/cli/src/front-door.ts"
+    ],
+    "contract": "Root help identifies OpenRig; arguments bypass the bare interactive dashboard."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "capability_id": "presentation",
+  "version": 1,
+  "payload": {
+    "display_name": "OpenRig",
+    "icon": {"light": "assets/terminal.svg", "dark": "assets/terminal.svg"},
+    "accent": {"light": "#4d6b86", "dark": "#8ba9c4"}
+  }
+}

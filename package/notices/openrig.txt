@@ -1,0 +1,5 @@
+OpenRig is discovered from the user's installation and is not redistributed by
+this package. Its source and licensing information are maintained at:
+https://github.com/mvschwarz/openrig
+
+The terminal icon in assets/terminal.svg is original package artwork.
