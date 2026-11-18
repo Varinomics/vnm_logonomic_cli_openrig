@@ -19,6 +19,7 @@ it is not a model conversation to which Logonomic can assign shared authority.
 | Initial model prompt | Unavailable; an explicit request is rejected without acknowledging delivery. |
 | Native hooks, lifecycle and model instructions | Unavailable; no hook, coordination or model-context capability is declared. |
 | Authored-member hook installation and existing-seat enrollment | Unavailable through the saved launcher. |
+| Internal member library | Composes a wrapper for one explicitly selected authored member and reads public native launch identity; not connected to launch preparation. |
 | Windows/WSL bridge | Unavailable; no Windows package is produced. |
 
 Discovery checks the executable's identity. Recognition describes the authored

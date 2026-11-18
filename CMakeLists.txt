@@ -50,6 +50,11 @@ target_include_directories(openrig_provider PUBLIC src)
 target_link_libraries(openrig_provider PUBLIC logonomic_cli_addon_sdk::sdk)
 openrig_target(openrig_provider)
 
+add_library(openrig_member STATIC src/openrig_member.cpp)
+target_include_directories(openrig_member PUBLIC src)
+target_link_libraries(openrig_member PUBLIC logonomic_cli_addon_sdk::sdk)
+openrig_target(openrig_member)
+
 add_executable(openrig_adapter src/adapter.cpp)
 target_link_libraries(openrig_adapter PRIVATE openrig_provider)
 openrig_target(openrig_adapter)

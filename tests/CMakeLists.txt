@@ -10,3 +10,10 @@ add_test(NAME openrig_launcher_protocol COMMAND "${Python3_EXECUTABLE}" -B
 set_tests_properties(
     openrig_package_validation openrig_package_conformance openrig_launcher_protocol
     PROPERTIES TIMEOUT 60 LABELS "cli-addon;provider-contract")
+
+add_executable(openrig_member_tests openrig_member_tests.cpp)
+target_link_libraries(openrig_member_tests PRIVATE openrig_member)
+openrig_target(openrig_member_tests)
+add_test(NAME openrig_member_contract COMMAND openrig_member_tests)
+set_tests_properties(openrig_member_contract
+    PROPERTIES TIMEOUT 60 LABELS "cli-addon;member-contract")
