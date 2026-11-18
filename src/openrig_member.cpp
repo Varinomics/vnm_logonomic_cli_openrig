@@ -165,13 +165,28 @@ std::optional<Prepared_member> prepare_authored_member(
         return failure<Prepared_member>(out_error, "The selected member must occur exactly once.");
     }
     const auto& member  = members->as_array()[*member_index];
+    const auto* authored_wrapper = member.find("launch_wrapper");
+    if (selector.expected_wrapper) {
+        const auto& expected = *selector.expected_wrapper;
+        if (!expected.is_null() && !expected.is_array()) {
+            return failure<Prepared_member>(out_error,
+                "The expected launch_wrapper must be null for absence or an argv array.");
+        }
+        const bool matches = expected.is_null()
+            ? authored_wrapper == nullptr
+            : authored_wrapper && *authored_wrapper == expected;
+        if (!matches) {
+            return failure<Prepared_member>(out_error,
+                "The authored launch_wrapper differs from the expected value.");
+        }
+    }
     const auto runtime = json::text(member, "runtime");
     if (!native_wrapper_runtime(runtime)) {
         return failure<Prepared_member>(out_error, "The member requires a supported local native wrapper runtime.");
     }
 
     std::vector<std::string> previous_wrapper;
-    if (const auto* wrapper = member.find("launch_wrapper")) {
+    if (const auto* wrapper = authored_wrapper) {
         if (!wrapper->is_array()) {
             return failure<Prepared_member>(out_error, "The authored launch_wrapper must be an argv array.");
         }

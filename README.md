@@ -19,7 +19,8 @@ it is not a model conversation to which Logonomic can assign shared authority.
 | Initial model prompt | Unavailable; an explicit request is rejected without acknowledging delivery. |
 | Native hooks, lifecycle and model instructions | Unavailable; no hook, coordination or model-context capability is declared. |
 | Authored-member hook installation and existing-seat enrollment | Unavailable through the saved launcher. |
-| Internal member library | Composes a wrapper for one explicitly selected authored member and reads public native launch identity; not connected to launch preparation. |
+| Authored-spec preparation | An explicit command composes a caller-supplied wrapper for one selected member into a new JSON spec. It does not install the wrapper or enroll a seat. |
+| Internal native identity reader | Reads public native launch identity for future authenticated binding; not connected to launch preparation. |
 | Windows/WSL bridge | Unavailable; no Windows package is produced. |
 
 Discovery checks the executable's identity. Recognition describes the authored
@@ -72,6 +73,43 @@ the root is `build/package/<configuration>`.
 package to a new destination. Package layout, integrity and application-managed
 installation follow the SDK's
 [package contract](https://github.com/Varinomics/logonomic/blob/master/sdk/logonomic_cli_addon_sdk/docs/package_contract.md).
+
+## Prepare an authored member
+
+The package includes `helpers/openrig_prepare_member` for an explicitly selected
+member in a JSON-authored spec. JSON is accepted by OpenRig's YAML spec reader.
+The command creates a new file beside the source, preserving the directory used
+by relative paths. It leaves the source bytes unchanged and refuses to replace
+any existing output path.
+
+```sh
+build/package/logonomic.cli.openrig/helpers/openrig_prepare_member \
+    --spec /work/team/rig.json --output /work/team/rig-prepared.json \
+    --rig compiler-team --pod build --member worker \
+    --expect-wrapper 'null' \
+    --wrapper-prefix '["/path/to/your/stable-wrapper","installation-reference","--"]'
+```
+
+Supply the exact existing `launch_wrapper` array to `--expect-wrapper`, or
+`null` when the property is absent. An explicit empty array is distinct from
+absence. A mismatch refuses preparation. Omit `--pod` only for the flat
+`nodes[]` format.
+
+The caller supplies an independently stable wrapper executable and nonsecret
+arguments. This package does not yet supply that launch entrypoint. Do not use
+a path into a temporary add-on package generation or put credentials in the
+prefix. The caller-owned prefix must end with one `--` argument and contain no
+earlier `--` argument after its executable; that boundary makes reapplication
+unambiguous. Existing wrapper arguments remain the exact suffix, including any
+of their own delimiters. A changed prefix using the same executable is refused.
+
+The output changes only the selected member's `launch_wrapper` value. Other
+JSON values are preserved, including account/profile settings, policy,
+relative paths and other members; formatting may change. Reapplying an
+identical prefix copies the input bytes unchanged. The command does not start
+OpenRig, validate the entire upstream schema, change a live rig, obtain host
+authority or activate hooks. Validate the resulting spec with the OpenRig
+version you use before launching it as a new rig.
 
 ## Native integration boundary
 

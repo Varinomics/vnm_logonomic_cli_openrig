@@ -14,6 +14,9 @@ struct Authored_member_selector
     std::string                rig_name;
     std::optional<std::string> pod_id;
     std::string                member_id;
+    // When supplied, null expects an absent launch_wrapper; an array expects
+    // that exact authored value. An empty array is distinct from absence.
+    std::optional<logonomic::cli_addon::Json_value> expected_wrapper = std::nullopt;
 };
 
 struct Prepared_member

@@ -59,11 +59,15 @@ add_executable(openrig_adapter src/adapter.cpp)
 target_link_libraries(openrig_adapter PRIVATE openrig_provider)
 openrig_target(openrig_adapter)
 
+add_executable(openrig_prepare_member src/openrig_prepare_member.cpp)
+target_link_libraries(openrig_prepare_member PRIVATE openrig_member)
+openrig_target(openrig_prepare_member)
+
 logonomic_cli_addon_package_platform(OPENRIG_PLATFORM)
 set(OPENRIG_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 configure_file(package/logonomic-cli-addon.json.in generated/logonomic-cli-addon.json @ONLY)
 logonomic_cli_addon_add_package(openrig_package logonomic.cli.openrig OPENRIG_PACKAGE_DIRECTORY
-    ADAPTER openrig_adapter)
+    ADAPTER openrig_adapter HELPERS openrig_prepare_member)
 
 if(LOGONOMIC_CLI_ADDON_EMBEDDED)
     return()

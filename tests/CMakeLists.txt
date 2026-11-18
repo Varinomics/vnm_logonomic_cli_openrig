@@ -17,3 +17,9 @@ openrig_target(openrig_member_tests)
 add_test(NAME openrig_member_contract COMMAND openrig_member_tests)
 set_tests_properties(openrig_member_contract
     PROPERTIES TIMEOUT 60 LABELS "cli-addon;member-contract")
+
+add_test(NAME openrig_member_preparation_cli COMMAND "${Python3_EXECUTABLE}" -B
+    "${CMAKE_CURRENT_SOURCE_DIR}/member_preparation_cli_tests.py"
+    "${OPENRIG_PACKAGE_DIRECTORY}/helpers/openrig_prepare_member${OPENRIG_EXECUTABLE_SUFFIX}")
+set_tests_properties(openrig_member_preparation_cli
+    PROPERTIES TIMEOUT 60 LABELS "cli-addon;member-contract")
