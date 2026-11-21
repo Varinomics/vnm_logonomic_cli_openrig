@@ -46,24 +46,21 @@ set. The package is not included in the official bundle roster.
 
 ## Build
 
-Use CMake 3.25 or newer and a C++20 compiler for the target platform. Linux
-packaging also requires Python 3.11 or newer and `patchelf`. Use the maintained
-[Linux assistant SDK and build queue](https://github.com/Varinomics/logonomic/blob/master/docs/linux_assistant_sdk.md)
-for assistant Linux builds.
+The [contributor guide](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/CONTRIBUTING.md) covers local package checks.
+Send provider pull requests to [the openrig repository](https://github.com/Varinomics/vnm_logonomic_cli_openrig/pulls).
 
-With a current Logonomic checkout next to this repository and the toolchain
-environment activated:
+Use CMake 3.25 or newer and a C++20 compiler for the target platform. Linux
+packaging also requires Python 3.11 or newer, `patchelf` and binutils.
+CMake fetches the SDK from `vnm_logonomic_cli_addon` on `master`. For a local
+checkout, pass `-DLOGONOMIC_CLI_ADDON_SDK_SOURCE=/path/to/sdk/logonomic_cli_addon_sdk`.
 
 ```sh
-queued-build --slots 1 -- cmake -S . -B build -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DLOGONOMIC_CLI_ADDON_SDK_SOURCE=../logonomic/sdk/logonomic_cli_addon_sdk
-queued-build --slots 4 -- cmake --build build --parallel 4
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 4
 ctest --test-dir build --output-on-failure
 ```
 
-Without the SDK source override, CMake fetches the SDK from Logonomic's `master`
-branch. An embedding build supplies the SDK target and sets
+An embedding build supplies the SDK target and sets
 `LOGONOMIC_CLI_ADDON_EMBEDDED`; the same package recipe then registers its output
 with that build without configuring the standalone tests.
 
@@ -86,7 +83,7 @@ the root is `build/package/<configuration>`.
 `cmake --install build --prefix <fresh-output-directory>` exports the indexed
 package to a new destination. Package layout, integrity and application-managed
 installation follow the SDK's
-[package contract](https://github.com/Varinomics/logonomic/blob/master/sdk/logonomic_cli_addon_sdk/docs/package_contract.md).
+[package contract](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/sdk/logonomic_cli_addon_sdk/docs/package_contract.md).
 
 ## Prepare an authored member
 
