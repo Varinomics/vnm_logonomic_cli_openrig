@@ -42,7 +42,7 @@ int main()
 {
     addon::Adapter_runtime_options options;
     options.adapter_name    = "openrig-addon";
-    options.adapter_version = "0.1.0";
+    options.adapter_version = LOGONOMIC_CLI_ADDON_ADAPTER_VERSION;
     options.capabilities = {
         {addon::k_presentation_capability_id,       addon::k_presentation_version},
         {addon::k_launcher_discovery_capability_id, addon::k_launcher_discovery_version},

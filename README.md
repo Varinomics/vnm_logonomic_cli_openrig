@@ -42,15 +42,15 @@ Use your distribution name and its actual executable path. Optional
 stopped distributions idle; a saved launcher can start its selected distribution.
 
 The package sidecars and protocol handshake declare the implemented capability
-set. The package is not included in the official bundle roster.
+set. See the [official bundle roster](https://github.com/Varinomics/vnm_logonomic_cli_bundle/blob/master/release/official-roster.json) for the packages included with Logonomic.
 
 ## Build
 
 The [contributor guide](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/CONTRIBUTING.md) covers local package checks.
 Send provider pull requests to [the openrig repository](https://github.com/Varinomics/vnm_logonomic_cli_openrig/pulls).
 
-Use CMake 3.25 or newer and a C++20 compiler for the target platform. Linux
-packaging also requires Python 3.11 or newer, `patchelf` and binutils.
+Use a C++20 toolchain for the target platform. On Linux, install the SDK's
+[Linux packaging prerequisites](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/sdk/logonomic_cli_addon_sdk/docs/package_contract.md#linux-native-runtime-deployment).
 CMake fetches the SDK from `vnm_logonomic_cli_addon` on `master`. For a local
 checkout, pass `-DLOGONOMIC_CLI_ADDON_SDK_SOURCE=/path/to/sdk/logonomic_cli_addon_sdk`.
 
@@ -107,7 +107,7 @@ absence. A mismatch refuses preparation. Omit `--pod` only for the flat
 `nodes[]` format.
 
 The caller supplies an independently stable wrapper executable and nonsecret
-arguments. This package does not yet supply that launch entrypoint. Do not use
+arguments. Do not use
 a path into a temporary add-on package generation or put credentials in the
 prefix. The caller-owned prefix must end with one `--` argument and contain no
 earlier `--` argument after its executable; that boundary makes reapplication

@@ -55,6 +55,7 @@ target_link_libraries(openrig_provider PUBLIC logonomic_cli_addon_sdk::sdk)
 openrig_target(openrig_provider)
 
 add_executable(openrig_adapter src/adapter.cpp)
+target_compile_definitions(openrig_adapter PRIVATE LOGONOMIC_CLI_ADDON_ADAPTER_VERSION="${PROJECT_VERSION}")
 target_link_libraries(openrig_adapter PRIVATE openrig_provider)
 openrig_target(openrig_adapter)
 
