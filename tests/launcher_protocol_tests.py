@@ -133,7 +133,7 @@ def write_cli_fixture(program, help_text, directory, exit_code=0):
         f"printf '%s\\n' \"$*\" >> {shlex.quote(str(directory / 'probe-arguments'))}\n"
         '[ "$#" = 1 ] && [ "$1" = --help ] || exit 71\n'
         '[ -z "${OPENRIG_TEST_AMBIENT_SECRET+x}" ] || exit 72\n'
-        f'[ "$OPENRIG_HOME" = {shlex.quote(str(directory / "rig-profile"))} ] || exit 73\n'
+        f'[ "$XDG_CONFIG_HOME" = {shlex.quote(str(directory / "config"))} ] || exit 73\n'
         f"printf '%s' {shlex.quote(help_text)}\n"
         f"exit {exit_code}\n",
         encoding="utf-8")
@@ -142,7 +142,7 @@ def write_cli_fixture(program, help_text, directory, exit_code=0):
 
 def check_discovery(adapter, directory, platform):
     program = directory / "rig"
-    ambient = {"PATH": str(directory), "OPENRIG_HOME": str(directory / "rig-profile")}
+    ambient = {"PATH": str(directory), "XDG_CONFIG_HOME": str(directory / "config")}
     request = {
         "ambient_environment": ambient, "default_home_fallback": str(directory),
         "platform": platform,
