@@ -42,12 +42,13 @@ Use your distribution name and its actual executable path. Optional
 stopped distributions idle; a saved launcher can start its selected distribution.
 
 The package sidecars and protocol handshake declare the implemented capability
-set. See the [official bundle roster](https://github.com/Varinomics/vnm_logonomic_cli_bundle/blob/master/release/official-roster.json) for the packages included with Logonomic.
+set.
 
 ## Build
 
 The [contributor guide](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/CONTRIBUTING.md) covers local package checks.
 Send provider pull requests to [the openrig repository](https://github.com/Varinomics/vnm_logonomic_cli_openrig/pulls).
+See the [repository license](LICENSE) for the terms covering Varinomics code.
 
 Use a C++20 toolchain for the target platform. On Linux, install the SDK's
 [Linux packaging prerequisites](https://github.com/Varinomics/vnm_logonomic_cli_addon/blob/master/sdk/logonomic_cli_addon_sdk/docs/package_contract.md#linux-native-runtime-deployment).
@@ -124,8 +125,6 @@ version you use before launching it as a new rig.
 
 ## Native integration boundary
 
-The authoritative integration requirements are in Logonomic's
-[OpenRig hook support plan](https://github.com/Varinomics/logonomic/blob/master/docs/openrig_hook_support_plan.md).
 Hook activation depends on independent host authority and instruction state for
 each seat, reusable native-provider hook preparation, and a durable wrapper
 entry point. The maintained

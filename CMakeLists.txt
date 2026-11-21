@@ -78,6 +78,7 @@ logonomic_cli_addon_package_platform(OPENRIG_PLATFORM)
 set(OPENRIG_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 configure_file(package/logonomic-cli-addon.json.in generated/logonomic-cli-addon.json @ONLY)
 logonomic_cli_addon_add_package(openrig_package logonomic.cli.openrig OPENRIG_PACKAGE_DIRECTORY
+    PROJECT_LICENSE LICENSE
     ADAPTER openrig_adapter ${OPENRIG_HELPERS})
 
 if(LOGONOMIC_CLI_ADDON_EMBEDDED)
